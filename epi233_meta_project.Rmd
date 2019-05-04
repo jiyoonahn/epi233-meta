@@ -18,5 +18,8 @@ head(df)
 edema <- df %>% # keep only relevant rows
         filter(!is.na(year))
 # "edema" is the name of our working dataset!
+
+edema <- edema %>% #change column names: upper case to lower case
+        rename(n = N, mv_duration = MV_duration) 
 ```
 
