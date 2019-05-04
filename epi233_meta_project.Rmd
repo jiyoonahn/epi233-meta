@@ -1,0 +1,18 @@
+---
+title: "Untitled"
+author: "Satoshi"
+date: "5/4/2019"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+df<-read.csv("EPI233_meta_analysis.csv")
+
+df<-df%>%dplyr::select("author","year","location","design","setting","icu_type","age_cat","mean_median_age","age_cat_2","N","male","MV_duration","steroid","cum_dose_equi_hydro","mean_time_first_dosing","observation_period","n_control_gibleed","event_control_gibleed","n_steroid_gibleed","event_steroid_gibleed","n_control_hyperglycemia","event_control_hyperglycemia","n_steroid_hyperglycemia","event_steroid_hyperglycemia","n_control_stridor","event_control_stridor","n_steroid_stridor","event_steroid_stridor","n_control_reintubation","event_control_reintubation","n_steroid_reintubation","event_steroid_reintubation")
+head(df)
+```
+
