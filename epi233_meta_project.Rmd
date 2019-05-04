@@ -33,15 +33,36 @@ edema <- edema %>% #change column names: upper case to lower case
 >>>>>>> f957acfbb9755ca58979085f1a1f239c41c3aa57
 ```
 
-#Forest
+#RCT
+##Re-intubation
 ```{r}
-meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
+#Forest
+#Fixed-effect
+edema_rct_reint<-edema%>%filter(design=="RCT", !is.na(n_control_reintubation))
+meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_reint,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
 forest(meta_fix)
 
-meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
+#Random-effect
+meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_reint,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
 forest(meta_ran)
+
+#Funnel plot
+funnel(meta_fix)
 
 
 ```
 
+##Stridor
+```{r}
+#Forest
+#Fixed-effect
+meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
+forest(meta_fix)
+
+#Random-effect
+meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
+forest(meta_ran)
+
+#Funnel plot
+funnel(meta_fix)
 
