@@ -23,8 +23,14 @@ head(df)
 edema <- df %>% # keep only relevant rows
         filter(!is.na(year))
 # "edema" is the name of our working dataset!
+<<<<<<< HEAD
 as_tibble(edema)
 summary(edema$setting)
+=======
+
+edema <- edema %>% #change column names: upper case to lower case
+        rename(n = N, mv_duration = MV_duration) 
+>>>>>>> f957acfbb9755ca58979085f1a1f239c41c3aa57
 ```
 
 #Forest
