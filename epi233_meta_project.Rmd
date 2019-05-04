@@ -7,6 +7,11 @@ output: html_document
 
 ```{r}
 library(dplyr)
+library(meta)
+library(foreign)
+library(readxl)
+library(dosresmeta)
+library(ggplot2)
 ```
 
 ```{r}
@@ -18,5 +23,19 @@ head(df)
 edema <- df %>% # keep only relevant rows
         filter(!is.na(year))
 # "edema" is the name of our working dataset!
+as_tibble(edema)
+summary(edema$setting)
 ```
+
+#Forest
+```{r}
+meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
+forest(meta_fix)
+
+meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
+forest(meta_ran)
+
+
+```
+
 
