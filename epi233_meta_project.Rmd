@@ -21,8 +21,10 @@ df<-df%>%dplyr::select("author","year","location","design","setting","icu_type",
 head(df)
 
 edema <- df %>% # keep only relevant rows
-        filter(!is.na(year))
+        filter(!is.na(year))%>%arrange(year)
 # "edema" is the name of our working dataset!
+
+
 <<<<<<< HEAD
 as_tibble(edema)
 summary(edema$setting)
@@ -34,12 +36,13 @@ edema <- edema %>% #change column names: upper case to lower case
 ```
 
 #RCT
-##Re-intubation
+##Stridor
 ```{r}
+edema_rct_str<-edema%>%filter(design=="RCT", !is.na(n_control_stridor))
+
 #Forest
 #Fixed-effect
-edema_rct_reint<-edema%>%filter(design=="RCT", !is.na(n_control_reintubation))
-meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_reint,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
+meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")
 forest(meta_fix)
 
 #Random-effect
@@ -49,20 +52,23 @@ forest(meta_ran)
 #Funnel plot
 funnel(meta_fix)
 
-
+write.csv(edema_rct_reint,"b.csv")
+as_tibble(edema_rct_reint)
 ```
 
-##Stridor
+##Re-intubation
 ```{r}
+edema_rct_reint<-edema%>%filter(design=="RCT", !is.na(n_control_reintubation))
+
 #Forest
 #Fixed-effect
-meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
+meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
 forest(meta_fix)
 
 #Random-effect
-meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
+meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
 forest(meta_ran)
 
 #Funnel plot
 funnel(meta_fix)
-
+```
