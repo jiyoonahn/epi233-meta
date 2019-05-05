@@ -42,7 +42,7 @@ edema_rct_str<-edema%>%filter(design=="RCT", !is.na(n_control_stridor))
 
 #Forest
 #Fixed-effect
-meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")
+meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author),comb.fixed=T,comb.random=F,sm="RR")
 forest(meta_fix)
 
 #Random-effect
@@ -52,8 +52,24 @@ forest(meta_ran)
 #Funnel plot
 funnel(meta_fix)
 
-write.csv(edema_rct_reint,"b.csv")
-as_tibble(edema_rct_reint)
+
+#meta-regression
+output_metareg<-metareg(meta_fix,cum_dose_equi_hydro)
+bubble(output_metareg,xlim=c(0,80),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
+
+output_metareg<-metareg(meta_fix,mean_median_age)
+bubble(output_metareg,xlim=c(-1,8),ylim=c(-5,5),studlab = TRUE,cex.studlab=0.6,pos=3)
+
+
+#Sub-analysis for age_cat
+d<-edema_rct_str%>%filter(age_cat_2==0)# for infant
+metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
+
+d<-edema_rct_str%>%filter(age_cat_2==1)# for 
+metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
+
+
+
 ```
 
 ##Re-intubation
