@@ -65,10 +65,10 @@ bubble(output_metareg,xlim=c(-1,12),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,
 
 
 #Sub-analysis for age_cat
-d<-edema_rct_str%>%filter(age_cat_2==0)# for infant
+d<-edema_rct_str%>%filter(age_cat_2==0)# for under 1 yo
 metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
 
-d<-edema_rct_str%>%filter(age_cat_2==1)# for 
+d<-edema_rct_str%>%filter(age_cat_2==1)# for older than 1 yo
 metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
 
 ```
@@ -102,9 +102,9 @@ bubble(output_metareg,xlim=c(-1,12),ylim=c(-3,2),studlab = TRUE,cex.studlab=0.6,
 
 
 #Sub-analysis for age_cat
-d<-edema_rct_reint%>%filter(age_cat_2==0)# for infant
+d<-edema_rct_reint%>%filter(age_cat_2==0)# for under 1 yo
 metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
 
-d<-edema_rct_reint%>%filter(age_cat_2==1)# for 
+d<-edema_rct_reint%>%filter(age_cat_2==1)# for older than 1 yo
 metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
 ```
