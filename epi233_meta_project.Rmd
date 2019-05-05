@@ -5,58 +5,82 @@ date: "5/4/2019"
 output: html_document
 ---
 
-```{r}
+```{r, echo = FALSE}
 library(dplyr)
 library(meta)
+library(metafor)
 library(foreign)
 library(readxl)
 library(dosresmeta)
 library(ggplot2)
+library(stargazer)
 ```
 
 ```{r}
-df<-read.csv("EPI233_meta_analysis.csv")
+df <- read.csv("EPI233_meta_analysis.csv")
 
 df<-df%>%dplyr::select("author","year","location","design","setting","icu_type","age_cat","mean_median_age","age_cat_2","N","male","MV_duration","steroid","cum_dose_equi_hydro","mean_time_first_dosing","observation_period","n_control_gibleed","event_control_gibleed","n_steroid_gibleed","event_steroid_gibleed","n_control_hyperglycemia","event_control_hyperglycemia","n_steroid_hyperglycemia","event_steroid_hyperglycemia","n_control_stridor","event_control_stridor","n_steroid_stridor","event_steroid_stridor","n_control_reintubation","event_control_reintubation","n_steroid_reintubation","event_steroid_reintubation")
 head(df)
 
 edema <- df %>% # keep only relevant rows
-        filter(!is.na(year))%>%arrange(year)
+        filter(!is.na(year)) %>% arrange(year)
 # "edema" is the name of our working dataset!
-
-
-<<<<<<< HEAD
-as_tibble(edema)
-summary(edema$setting)
-=======
 
 edema <- edema %>% #change column names: upper case to lower case
         rename(n = N, mv_duration = MV_duration) 
->>>>>>> f957acfbb9755ca58979085f1a1f239c41c3aa57
 ```
 
-#RCT
-##Stridor
+# Table 1: Description
+```{r}
+table1 <- edema %>%
+  dplyr::select(author, year, location, design, setting, icu_type, mean_median_age,
+                n, male, steroid)
+stargazer(table1, summary = FALSE, type = "text")
+```
+
+
+# Stridor & RCT
 ```{r}
 edema_rct_str<-edema%>%filter(design=="RCT", !is.na(n_control_stridor))
+```
 
-#Forest
+```{r}
+# stridor & RCT: fixed effects
 #Fixed-effect (RR)
 meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="RR")
 forest(meta_fix,lab.e="Steroid")
 
+#Fixed-effect (RD)
+meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="RD")
+forest(meta_fix,lab.e="Steroid")
+
+#Fixed-effect (OR)
+meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR",method = "MH")
+forest(meta_fix,lab.e="Steroid")
+
+#Fixed-effect (OR, method = peto)
+meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", methods = "Peto")
+forest(meta_fix,lab.e="Steroid")
+```
+
+```{r, fig.width = 5}
+# stridor & RCT: random effects
 #Random-effect (RR)
-meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
+meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="RR",method.tau = "DL")
 forest(meta_ran,lab.e="Steroid")
 
-#Peto and random effect (OR)
-meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="OR",method.tau = "EB",method="peto")
+# random-effect (RD)
+meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="RD",method.tau = "EB")
 forest(meta_ran,lab.e="Steroid")
+```
 
+```{r}
+#checking publication bias
 #Funnel plot
 funnel(meta_fix)
+```
 
-
+```{r}
 #meta-regression
 output_metareg<-metareg(meta_fix,cum_dose_equi_hydro)
 bubble(output_metareg,xlim=c(0,80),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
@@ -66,26 +90,43 @@ bubble(output_metareg,xlim=c(-1,8),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,p
 
 output_metareg<-metareg(meta_fix,mean_time_first_dosing)
 bubble(output_metareg,xlim=c(-1,12),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
+```
 
-
-#Sub-analysis for age_cat
-d<-edema_rct_str%>%filter(age_cat_2==0)# for under 1 yo
-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
-
-d<-edema_rct_str%>%filter(age_cat_2==1)# for older than 1 yo
-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
-
+```{r, fig.width = 5}
+# stridor & rct: subgroup analysis by age_cat_2 (0, 1), 2(excluded)
+meta_sub <- metabin(event_steroid_stridor, n_steroid_stridor, event_control_stridor, n_control_stridor, 
+                    data = edema_rct_str, studlab = paste(author,year), 
+                    subset = age_cat_2 <= 1, byvar = age_cat_2, 
+                    comb.fixed = F,comb.random = T, sm = "RR" , method.tau = "DL")
+forest(meta_sub, lab.e = "Steroid")
 ```
 
 ##Re-intubation
 ```{r}
+# new dataframe including only reintubation and RCT
 edema_rct_reint<-edema%>%filter(design=="RCT", !is.na(n_control_reintubation))
+```
 
+```{r, fig.width = 5}
 #Forest
-#Fixed-effect 
+#Fixed-effect (RR)
 meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="RR")
 forest(meta_fix, lab.e="Steroid")
 
+#Fixed-effect (RD)
+meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="RD")
+forest(meta_fix, lab.e="Steroid")
+
+#Fixed-effect (OR "MH")
+meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", method = "MH")
+forest(meta_fix, lab.e="Steroid")
+
+#Fixed-effect (OR "Peto")
+meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", method = "Peto")
+forest(meta_fix, lab.e="Steroid")
+```
+
+```{r}
 #Random-effect
 meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
 forest(meta_ran,lab.e="Steroid")
@@ -93,11 +134,14 @@ forest(meta_ran,lab.e="Steroid")
 #Peto and Random-effect (OR)
 meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author),comb.fixed=F,comb.random=T,sm="OR",method.tau = "EB",method="peto")
 forest(meta_ran,lab.e="Steroid")
+```
 
+```{r}
 #Funnel plot
 funnel(meta_fix)
+```
 
-
+```{r}
 #meta-regression
 output_metareg<-metareg(meta_fix,cum_dose_equi_hydro)
 bubble(output_metareg,xlim=c(0,80),ylim=c(-3,2),studlab = TRUE,cex.studlab=0.6,pos=3)
@@ -107,12 +151,13 @@ bubble(output_metareg,xlim=c(-1,8),ylim=c(-3,2),studlab = TRUE,cex.studlab=0.6,p
 
 output_metareg<-metareg(meta_fix,mean_time_first_dosing)
 bubble(output_metareg,xlim=c(-1,12),ylim=c(-3,2),studlab = TRUE,cex.studlab=0.6,pos=3)
+```
 
-
-#Sub-analysis for age_cat
-d<-edema_rct_reint%>%filter(age_cat_2==0)# for under 1 yo
-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
-
-d<-edema_rct_reint%>%filter(age_cat_2==1)# for older than 1 yo
-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=d,studlab=paste(author),comb.fixed=T,comb.random=F,sm="OR")%>%forest()
+```{r, fig.width = 5}
+# reintubation & RCT: subgroup analysis by age_cat_2 (0: under 1yr, 1: older than 1 yr), 2(excluded)
+meta_sub <- metabin(event_steroid_reintubation, n_steroid_reintubation, event_control_reintubation, n_control_reintubation, 
+                    data = edema_rct_reint, studlab = paste(author, year), 
+                    subset = age_cat_2 <= 1, byvar = age_cat_2, 
+                    comb.fixed = F,comb.random = T, sm = "OR" , method = "Peto")
+forest(meta_sub, lab.e = "Steroid")
 ```
