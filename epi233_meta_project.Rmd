@@ -33,11 +33,9 @@ edema <- edema %>% #change column names: upper case to lower case
 # Table 1: Description
 ```{r}
 table1 <- edema %>%
-  dplyr::select(author, year, location, design, setting, icu_type, mean_median_age,
-                n, male, steroid)
+  dplyr::select(author, year, cum_dose_equi_hydro, observation_period, mean_time_first_dosing)
 stargazer(table1, summary = FALSE, type = "text")
 ```
-
 
 # Stridor & RCT
 ```{r}
