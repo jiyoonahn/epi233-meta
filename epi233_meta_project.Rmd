@@ -14,6 +14,7 @@ library(readxl)
 library(dosresmeta)
 library(ggplot2)
 library(stargazer)
+library(compute.es)
 ```
 
 ```{r}
@@ -49,16 +50,16 @@ meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,
 forest(meta_fix,lab.e="Steroid")
 
 #Fixed-effect (RD)
-meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="RD")
-forest(meta_fix,lab.e="Steroid")
+#meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="RD")
+#forest(meta_fix,lab.e="Steroid")
 
 #Fixed-effect (OR)
-meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR",method = "MH")
-forest(meta_fix,lab.e="Steroid")
+#meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR",method = "MH")
+#forest(meta_fix,lab.e="Steroid")
 
 #Fixed-effect (OR, method = peto)
-meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", methods = "Peto")
-forest(meta_fix,lab.e="Steroid")
+#meta_fix<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", methods = "Peto")
+#forest(meta_fix,lab.e="Steroid")
 ```
 
 ```{r, fig.width = 5}
@@ -68,25 +69,59 @@ meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,
 forest(meta_ran,lab.e="Steroid")
 
 # random-effect (RD)
-meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="RD",method.tau = "EB")
+#meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="RD",method.tau = "EB")
+#forest(meta_ran,lab.e="Steroid")
+
+# random-effect (OR)
+meta_ran<-metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=edema_rct_str,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="OR",method.tau = "DL")
 forest(meta_ran,lab.e="Steroid")
+
+OR=c(0.40,0.21,0.79)
+PEER=(4+23+10+28+11+12+7)/226
+NNT = (1-(PEER*(1-OR))) / ((1-PEER)*(PEER)*(1-OR))
+1000/NNT
 ```
 
 ```{r}
 #checking publication bias
 #Funnel plot
-funnel(meta_fix)
+funnel(meta_ran)
+
+eggers.test<-function(data){
+
+  data<-data
+  eggers<-metabias(data,k.min=7)
+  intercept<-as.numeric(eggers$estimate[1])
+  intercept<-round(intercept,digits=3)
+  se.intercept<-eggers$estimate[2]
+  lower.intercept<-as.numeric(intercept-1.96*se.intercept)
+  lower.intercept<-round(lower.intercept,digits = 2)
+  higher.intercept<-as.numeric(intercept+1.96*se.intercept)
+  higher.intercept<-round(higher.intercept,digits = 2)
+  ci.intercept<-paste(lower.intercept,"-",higher.intercept)
+  ci.intercept<-gsub(" ", "", ci.intercept, fixed = TRUE)
+  intercept.pval<-as.numeric(eggers$p.value)
+  intercept.pval<-round(intercept.pval,digits=5)
+  eggers.output<-data.frame(intercept,ci.intercept, intercept.pval)
+  names(eggers.output)<-c("intercept","95%CI","p-value")
+  title<-"Results of Egger's test of the intercept"
+  
+print(title)
+print(eggers.output)
+}
+eggers.test(data=meta_ran)
+
 ```
 
 ```{r}
 #meta-regression
-output_metareg<-metareg(meta_fix,cum_dose_equi_hydro)
+output_metareg<-metareg(meta_ran,cum_dose_equi_hydro)
 bubble(output_metareg,xlim=c(0,80),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
 
-output_metareg<-metareg(meta_fix,mean_median_age)
+output_metareg<-metareg(meta_ran,mean_median_age)
 bubble(output_metareg,xlim=c(-1,8),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
 
-output_metareg<-metareg(meta_fix,mean_time_first_dosing)
+output_metareg<-metareg(meta_ran,mean_time_first_dosing)
 bubble(output_metareg,xlim=c(-1,12),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
 ```
 
@@ -122,21 +157,23 @@ forest(meta_fix, lab.e="Steroid")
 #Fixed-effect (OR "Peto")
 meta_fix<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", method = "Peto")
 forest(meta_fix, lab.e="Steroid")
+
+OR=c(0.36,0.22,0.59)
+PEER=(4+4+4+7+5+33+19+1)/277
+NNT = (1-(PEER*(1-OR))) / ((1-PEER)*(PEER)*(1-OR))
+1000/NNT
 ```
 
 ```{r}
 #Random-effect
 meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author),comb.fixed=F,comb.random=T,sm="RR",method.tau = "EB")
 forest(meta_ran,lab.e="Steroid")
-
-#Peto and Random-effect (OR)
-meta_ran<-metabin(event_steroid_reintubation,n_steroid_reintubation,event_control_reintubation,n_control_reintubation,data=edema_rct_reint,studlab=paste(author),comb.fixed=F,comb.random=T,sm="OR",method.tau = "EB",method="peto")
-forest(meta_ran,lab.e="Steroid")
 ```
 
 ```{r}
 #Funnel plot
 funnel(meta_fix)
+eggers.test(data=meta_fix)
 ```
 
 ```{r}
