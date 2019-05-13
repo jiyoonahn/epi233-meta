@@ -80,13 +80,14 @@ funnel(meta_fix)
 
 ```{r}
 #meta-regression
-output_metareg<-metareg(meta_fix,cum_dose_equi_hydro)
+output_metareg<-metareg(meta_ran,cum_dose_equi_hydro) # meta_fix -> meta_ran (RR)
 bubble(output_metareg,xlim=c(0,80),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
+summary(output_metareg)
 
-output_metareg<-metareg(meta_fix,mean_median_age)
+output_metareg<-metareg(meta_ran,mean_median_age)
 bubble(output_metareg,xlim=c(-1,8),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
 
-output_metareg<-metareg(meta_fix,mean_time_first_dosing)
+output_metareg<-metareg(meta_ran,mean_time_first_dosing)
 bubble(output_metareg,xlim=c(-1,12),ylim=c(-2,2),studlab = TRUE,cex.studlab=0.6,pos=3)
 ```
 
@@ -143,6 +144,7 @@ funnel(meta_fix)
 #meta-regression
 output_metareg<-metareg(meta_fix,cum_dose_equi_hydro)
 bubble(output_metareg,xlim=c(0,80),ylim=c(-3,2),studlab = TRUE,cex.studlab=0.6,pos=3)
+summary(output_metareg)
 
 output_metareg<-metareg(meta_fix,mean_median_age)
 bubble(output_metareg,xlim=c(-1,8),ylim=c(-3,2),studlab = TRUE,cex.studlab=0.6,pos=3)
@@ -159,3 +161,14 @@ meta_sub <- metabin(event_steroid_reintubation, n_steroid_reintubation, event_co
                     comb.fixed = F,comb.random = T, sm = "OR" , method = "Peto")
 forest(meta_sub, lab.e = "Steroid")
 ```
+
+
+# sensitivity analysis
+```{r}
+#Fixed-effect (OR, method = peto)
+sens <- edema_rct_str %>%
+  filter(author != "Doyle LW")
+meta_fix <- metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=sens,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", methods = "Peto")
+forest(meta_fix,lab.e="Steroid")
+```
+
