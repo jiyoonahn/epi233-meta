@@ -205,11 +205,19 @@ forest(meta_sub, lab.e = "Steroid")
 
 
 # sensitivity analysis
-```{r}
-#Fixed-effect (OR, method = peto)
-sens <- edema_rct_str %>%
+```{r, fig.width = 5}
+# Stridor; random-effect (OR, method = DL)
+sens_stridor <- edema_rct_str %>%
+  filter(author != "Drago BB")
+meta_fix <- metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=sens_stridor,studlab=paste(author,year),comb.fixed=F,comb.random=T,sm="OR", methods = "DL")
+forest(meta_fix,lab.e="Steroid")
+```
+
+```{r, fig.width = 5}
+# Fixed-effect (OR, method = peto)
+sens_reint <- edema_rct_reint %>%
   filter(author != "Doyle LW")
-meta_fix <- metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=sens,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", methods = "Peto")
+meta_fix <- metabin(event_steroid_stridor,n_steroid_stridor,event_control_stridor,n_control_stridor,data=sens_reint,studlab=paste(author,year),comb.fixed=T,comb.random=F,sm="OR", methods = "Peto")
 forest(meta_fix,lab.e="Steroid")
 ```
 
